@@ -6,7 +6,7 @@ from router.intent_router import global_intent_router
 from agents.screening.agent import create as create_screening_agent
 from agents.exchange.agent import create as create_exchange_agent
 from agents.credit.agent import create as create_credit_agent
-# from agents.credit_interview.tools import calculate_new_score, update_new_score
+from agents.general.agent import general_intent_agent
 
 load_dotenv()
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     print("Digite 'sair' para encerrar.\n")
 
     while True:
-        user_input = input("Você: ").strip()
+        user_input = input("-> Eu: ").strip()
         # if user_input.lower() == "sair":
         #     print("Encerrando o chatbot...")
         #     break
@@ -98,29 +98,35 @@ if __name__ == "__main__":
         # 🔍 Extrai intenção
         next_agent = extract_intent_from_response(intent)
 
-       
         match next_agent:
             case "exchange":
                 agent_result = agent_exchange.invoke({
                     "messages": [{"role": "user", "content": user_input}]
                 })
                 response = agent_result["messages"][-1].content
-                print("Agente de Câmbio:", response)
+                conversation_history.append({"role": "assistant", "content": response})
+                print("-> Agente de Câmbio:", response)
 
             case "credit":
                 agent_result = agent_credit.invoke({
                     "messages": [{"role": "user", "content": user_input}]
                 })
                 response = agent_result["messages"][-1].content
-                print("Agente de Crédito: ", response)
+                conversation_history.append({"role": "assistant", "content": response})
+                print("-> Agente de Crédito: ", response)
 
             case "interview":
-                print("Agente de Entrevista de Crédito: Vamos iniciar a sua entrevista de crédito.")
+                response = "Vamos iniciar a sua entrevista de crédito."
+                conversation_history.append({"role": "assistant", "content": response})
+                print("-> Agente de Entrevista de Crédito: ", response)
                 
             case "end_conversation":
-                print("Agente: Foi um prazer ajudar você! Até a próxima.")
+                response = "Foi um prazer ajudar você! Até a próxima."
+                conversation_history.append({"role": "assistant", "content": response})
+                print("-> Agente: ", response)
 
             case _:
-                ###small_talks case
-                print("Agente: Vamos manter a conversa leve! Como posso ajudar você hoje?")
-        print("-" * 50)
+                agent_result = general_intent_agent(base_model, conversation_history)
+                response = agent_result
+                conversation_history.append({"role": "assistant", "content": response})
+                print("-> Agente Geral: ", response)
