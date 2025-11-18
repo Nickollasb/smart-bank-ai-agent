@@ -98,28 +98,7 @@ if __name__ == "__main__":
         # 🔍 Extrai intenção
         next_agent = extract_intent_from_response(intent)
 
-        # --- 🔁 Redirecionamento automático ---
-        # if next_agent == "exchange":
-        #     print("\n🔁 Redirecionando automaticamente para o agente de câmbio...\n")
-        #     exchange_result = agent_exchange.invoke({
-        #         "messages": [{"role": "user", "content": user_input}]
-        #     })
-        #     exchange_response = exchange_result["messages"][-1].content
-        #     print("Agente de Câmbio:", exchange_response)
-        #     print("-" * 50)
-        #     continue
-
-        # elif next_agent == "credit":
-        #     print("\n💳 (Em breve) Redirecionamento para o agente de crédito...\n")
-        # elif next_agent == "interview":
-        #     print("\n🧾 (Em breve) Redirecionamento para o agente de entrevista de crédito...\n")
-        # else:
-        #     print("\n🔁 Redirecionando agente default de roteamento...\n")
-        #     result = agent_screening.invoke({
-        #         "messages": [{"role": "user", "content": user_input}]
-        #     })
-        #     resposta = result["messages"][-1].content
-        #     print("Agente: ", resposta)
+       
         match next_agent:
             case "exchange":
                 agent_result = agent_exchange.invoke({
@@ -127,7 +106,6 @@ if __name__ == "__main__":
                 })
                 response = agent_result["messages"][-1].content
                 print("Agente de Câmbio:", response)
-                print("-" * 50)
 
             case "credit":
                 agent_result = agent_credit.invoke({
@@ -135,15 +113,14 @@ if __name__ == "__main__":
                 })
                 response = agent_result["messages"][-1].content
                 print("Agente de Crédito: ", response)
-                print("-" * 50)
 
-            # case "interview":
-            #     print("Agente de Entrevista de Crédito: Vamos iniciar a sua entrevista de crédito.")
-
+            case "interview":
+                print("Agente de Entrevista de Crédito: Vamos iniciar a sua entrevista de crédito.")
+                
             case "end_conversation":
                 print("Agente: Foi um prazer ajudar você! Até a próxima.")
 
             case _:
-                #small_talks case
+                ###small_talks case
                 print("Agente: Vamos manter a conversa leve! Como posso ajudar você hoje?")
         print("-" * 50)
