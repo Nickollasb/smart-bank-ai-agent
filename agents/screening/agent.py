@@ -1,34 +1,34 @@
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
-from agents.screening.tools import autenticar_cliente
+from agents.screening.tools import authenticate_customer
 
 def create(base_model: ChatOpenAI):
     """
-    Screening Agent — apenas autenticação.
-    NÃO tenta classificar intenção.
-    NÃO tenta responder assuntos gerais.
+    Agente de Triagem (screening agent).
+
+    É responsável APENAS pela parte de identificação do cliente por meio de autenticação
     """
-    tools = [autenticar_cliente]
 
     system_prompt = (
-        "Você é o agente de triagem de um banco digital.\n"
-        "Seu único objetivo é AUTENTICAR o cliente antes de liberá-lo para outros agentes.\n\n"
-
-        "Fluxo:\n"
-        "1. Cumprimente.\n"
-        "2. Peça o CPF.\n"
-        "3. Peça a data de nascimento.\n"
-        "4. Use exclusivamente a ferramenta 'autenticar_cliente'.\n"
-        "5. Se falhar, permita 3 tentativas.\n"
-        "6. Se autenticar, responda APENAS:\n"
-        "```AUTH_OK```\n"
-        "7. Não responda perguntas sobre câmbio, crédito ou outros assuntos.\n"
-        "8. Se o usuário perguntar outras coisas antes da autenticação, diga:\n"
-        "   'Vamos concluir sua autenticação primeiro.'\n"
+        """
+        Você é o Agente de Triagem (screening agent).
+        
+        Seu único objetivo é AUTENTICAR o cliente antes de liberá-lo para outros agentes.
+        
+        Fluxo:
+        1. Cumprimente o cliente
+        2. Peça o CPF
+        3. Peça a data de nascimento no formato dia/mês/ano
+        4. Use exclusivamente a ferramenta 'authenticate_customer' para autenticar
+        5. Se falhar, permita 3 tentativas.
+        6. Se autenticar, responda APENAS 'AUTH_OK'
+        7. Não responda perguntas sobre câmbio, crédito ou outros assuntos.
+        8. Se o usuário perguntar outras coisas antes da autenticação, retome o assunto, ex: 'Vamos concluir sua autenticação primeiro'
+        """
     )
 
     return create_agent(
         model=base_model,
-        tools=tools,
+        tools=[authenticate_customer],
         system_prompt=system_prompt
     )
