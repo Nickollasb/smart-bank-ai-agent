@@ -101,3 +101,8 @@ def get_current_datetime() -> str:
 
 def dict_to_list(dict_data):
     return [str(value) for value in dict_data.values()]
+
+def convert_date_to_raw_format(date: str):
+    data = date.split('/')
+    data.reverse()
+    return '-'.join(data)

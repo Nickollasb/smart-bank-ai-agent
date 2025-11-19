@@ -1,5 +1,5 @@
 from langchain.tools import tool
-from providers import find_data
+from providers import find_data, convert_date_to_raw_format
 
 #####################################################################################################################
 ############# TOOLS #################################################################################################
@@ -20,7 +20,7 @@ def _authenticate_customer(document: str, birth_date: str) -> str:
     customers: list[dict] = find_data("data/clientes.csv", "cpf", document)
 
     for customer in customers:
-        if customer["cpf"] == document and customer["data_nascimento"] == birth_date:
+        if customer["cpf"] == document and customer["data_nascimento"] == convert_date_to_raw_format(birth_date):
             return f"[AUTH_SUCCESS] {customer['nome']}"
 
     return "[AUTH_FAILED]"

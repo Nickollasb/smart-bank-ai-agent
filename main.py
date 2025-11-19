@@ -11,6 +11,12 @@ from agents.general.agent import general_intent_agent
 
 from providers import get_current_datetime
 
+import warnings
+warnings.filterwarnings(
+    action="ignore",
+    message=".*Pydantic V1 functionality isn't compatible with Python 3.14.*"
+)
+
 load_dotenv()
 
 # os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2")
@@ -44,14 +50,12 @@ MAX_TENTATIVAS = 3
 active_agent = "screening"
 conversation_history = []
 
-business_name = "Banco Ágil"
-
 initial_context = f""""
     Contexto (C):
-    - Você é um agente bancário do '{business_name}'.
+    - Você é um agente bancário do 'Banco Ágil'.
 
     Objetivo (O):
-    - Seu objetivo é atender os clientes do '{business_name}' a utilizarem os serviços bancários, 
+    - Seu objetivo é atender os clientes do 'Banco Ágil' a utilizarem os serviços bancários, 
       direcionando o cliente  para conversar com o agente correto, de acordo com a solicitação.
     
     Estilo (S):
@@ -61,7 +65,7 @@ initial_context = f""""
     - Cordial, com linguagem simples/objetiva sempre mantendo o tom profissional.
     
     Audiência(A)
-    - Clientes do '{business_name}'.
+    - Clientes do 'Banco Ágil'.
     
     Formato de resposta (R)
     - Responda sempre o cliente de acordo com o contexto da conversa e/ou solicitação.
