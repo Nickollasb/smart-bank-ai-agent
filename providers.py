@@ -23,6 +23,31 @@ def read_data(file_path: str) -> list[dict]:
     except FileNotFoundError:
         print(f"Erro: Arquivo não encontrado: {file_path}")
         return False
+    
+def find_data(file_path: str, search_column: str, search_row_key: str) -> list[dict]:
+    """
+    Lê um arquivo .csv e retorna uma lista de dicionários
+    onde o valor da coluna `search_column` é igual a `search_row_key`.
+    """
+    try:
+        with open(file_path, newline="", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+
+            if search_column not in reader.fieldnames:
+                raise ValueError(f"Column '{search_column}' not found in file.")
+
+            results = [
+                row
+                for row in reader
+                if row.get(search_column) == search_row_key
+            ]
+
+            return results
+
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found")
+        return []
+
 
 def update_data(file_path: str, search_column: str, search_row_key: str, field_name: str, new_value: str) -> bool:
     """

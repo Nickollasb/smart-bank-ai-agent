@@ -8,7 +8,7 @@ from agents.exchange.agent import create as create_exchange_agent
 from agents.credit.agent import create as create_credit_agent
 from agents.general.agent import general_intent_agent
 
-from agents.credit.tools import _check_score_for_new_limit
+from agents.credit_interview.tools import _calculate_new_score
 
 load_dotenv()
 
