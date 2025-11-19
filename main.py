@@ -44,9 +44,9 @@ agents = {
     "exchange": create_exchange_agent(base_model)
 }
 
-autenticado = False
-tentativas = 0
-MAX_TENTATIVAS = 3
+is_auth = False
+auth_attempts = 0
+MAX_AUTH_ATTEMPTS = 1
 active_agent = "screening"
 conversation_history = []
 
@@ -75,6 +75,7 @@ initial_context = f""""
       que está sendo direcionado para um agente diferente. A conversa deve fluir naturalmente como se fosse com um humano.
     - Nenhum agente pode atuar fora do seu escopo definido.
     - Você deve saudar o cliente sempre com um 'Bom dia/Boa tarde/Boa noite'. Horário atual para referência: '{get_current_datetime}'
+    - Quantidade de tentativas de autenticação permitidas {MAX_AUTH_ATTEMPTS}
 """
 
 conversation_history = [{"role": "system", "content": "Iniciando atendimento bancário."}]
@@ -113,14 +114,56 @@ def handle_intent(intent: str):
     return False
 
 if __name__ == "__main__":
+    print(">>>> Iniciando agente Banco Ágil <<<<\n\n\n")
     while True:
-        user_input = input("Você: ")
+        user_input = input(" --> Eu: ").strip()
 
         conversation_history.append({"role": "user", "content": user_input})
 
+        # conversation_history.append({"role": "system", "content": "O CPF do cliente é 05613638111"})
+
+        if not is_auth:
+            result = agents["screening"].invoke({"messages": conversation_history})
+            message = result["messages"][-1].content
+            conversation_history.append({"role": "assistant", "content": message})
+            print(f" ----> {active_agent.upper()}: {message}")
+            
+            if message == "AUTH_OK":
+                is_auth = True
+                auth_attempts = 0
+                message = "Obrigado pela validação, já encontrei os seus dados. Como posso te ajudar?"
+                conversation_history.append({"role": "assistant", "content": message})
+                print(message)
+                continue
+            
+            elif message == "AUTH_FAILED":
+                # auth_attempts += 1
+                result = agents["screening"].invoke({"messages": conversation_history})
+                print(f" !----> {active_agent.upper()}: {message}")
+
+                # if auth_attempts >= MAX_AUTH_ATTEMPTS:
+                #     message = f"Resultado da tentativa {auth_attempts}: {message}."
+                #     conversation_history.append({"role": "system", "content": message})
+                #     result = agents["screening"].invoke({"messages": conversation_history})
+                #     print(f" ?----> {active_agent.upper()}: {message}")
+                #     break
+                # else:
+                #     # TODO ajustar mensagem após 3 falhas consecutivas
+                #     print(f"\n⚠️ Tentativa {auth_attempts}/{MAX_AUTH_ATTEMPTS} — tente novamente.\n")
+                #     continue
+            else:
+                continue
+
+
+
+
+
+
+
+
         result = agents[active_agent].invoke({"messages": conversation_history})
         resposta = result["messages"][-1].content
-        print(f"{active_agent.upper()}: {resposta}")
+        print(f" ----> {active_agent.upper()}: {resposta}")
 
         conversation_history.append({"role": "assistant", "content": resposta})
 
