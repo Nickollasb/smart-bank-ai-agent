@@ -1,5 +1,5 @@
 from langchain.tools import tool
-from providers import read_data, insert_data, get_current_datetime
+from providers import read_data, insert_data, get_current_datetime, update_data
 import csv
 from datetime import datetime
 
@@ -21,7 +21,6 @@ def get_current_credit_limit(document: str) -> dict:
 
 @tool("check_score_for_new_limit")
 def check_score_for_new_limit(document: str, new_limit: float) -> str:
-    #TODO: Se o retorno for 'REPROVADO', perguntar se o cliente deseja fazer uma entrevista de crédito 
     """
     Verifica se o score do cliente permite o novo limite desejado.
     Retornos possíveis:
@@ -56,7 +55,6 @@ def _check_score_for_new_limit(document: str, new_limit: float) -> str:
     score = _get_credit_score(document)
 
     if score is None:
-        # TODO aqui ajustar para direcionar para a entrevista de crédito
         _register_request_for_limit_increase(document, new_limit, new_limit_request_status)
         return new_limit_request_status
 
@@ -71,6 +69,7 @@ def _check_score_for_new_limit(document: str, new_limit: float) -> str:
             if (faixa_min <= int(score) <= faixa_max) and (new_limit <= limite_max):
                 new_limit_request_status = "APROVADO"
                 _register_request_for_limit_increase(document, new_limit, new_limit_request_status)
+                _update_increase_new_customer_limit(document, new_limit)
                 return new_limit_request_status
 
     _register_request_for_limit_increase(document, new_limit, new_limit_request_status)
@@ -85,3 +84,6 @@ def _register_request_for_limit_increase(document, new_limit, new_limit_request_
         "novo_limite_solicitado": new_limit,
         "status_pedido": new_limit_request_status
     })
+
+def _update_increase_new_customer_limit(document, new_limit):
+    update_data('data/clientes.csv', "cpf", document, "limite_credito", new_limit)

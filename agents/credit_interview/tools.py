@@ -41,11 +41,11 @@ def calculate_new_score(document: str) -> dict:
     return {"cpf": document, "new_score": min(max(int(score), 0), 1000)}
 
 # @tool("update_new_score")
-def update_new_score(document: str, new_score: int) -> dict:
-    """Atualiza o novo score de crédito de um cliente em 'clientes.csv' pelo CPF (document)."""
+# def update_new_score(document: str, new_score: int) -> dict:
+#     """Atualiza o novo score de crédito de um cliente em 'clientes.csv' pelo CPF (document)."""
     
-    column_name = 'cpf'    
-    update_data("data/clientes.csv", column_name, document, new_score)
+#     column_name = 'cpf'    
+#     update_data("data/clientes.csv", column_name, document, new_score)
 
-    return "Sucesso na atualização do score de crédito."
+#     return "Sucesso na atualização do score de crédito."
 

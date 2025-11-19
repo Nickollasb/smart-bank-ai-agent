@@ -23,10 +23,10 @@ def read_data(file_path: str) -> list[dict]:
     except FileNotFoundError:
         print(f"Erro: Arquivo não encontrado: {file_path}")
         return False
-    
-def update_data(file_path: str, column_name: str, row_id: str, value: str) -> bool:
+
+def update_data(file_path: str, search_column: str, search_row_key: str, field_name: str, new_value: str) -> bool:
     """
-    Atualiza apenas a linha do CSV onde column_name == row_id.
+    Atualiza apenas a linha do CSV onde encontrar o respectivo search_column e search_row_key.
     """
     try:
         # 1. Ler todo o arquivo
@@ -35,16 +35,16 @@ def update_data(file_path: str, column_name: str, row_id: str, value: str) -> bo
 
         with open(file_path, "r", encoding="utf-8", newline="") as infile:
             reader = csv.DictReader(infile)
-            fieldnames = reader.fieldnames  # mantém as colunas originais
+            fieldnames = reader.fieldnames
 
             for row in reader:
-                if row.get(column_name) == row_id:
-                    row["score"] = value      # altera SOMENTE o valor desejado
+                if row.get(search_column) == search_row_key:
+                    row[field_name] = new_value
                     updated = True
                 rows.append(row)
 
         if not updated:
-            print(f"⚠️ Nenhuma linha encontrada com {column_name} = {row_id}")
+            print(f"No lines found at '{file_path}' in column '{search_column}' with key '{search_row_key}'")
             return False
 
         # 2. Reescrever o arquivo com a linha alterada

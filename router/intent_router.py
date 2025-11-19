@@ -1,46 +1,21 @@
 from langchain_openai import ChatOpenAI
-from langchain.tools import tool
 
-# def global_intent_router(base_model: ChatOpenAI, mensagem: str) -> str:
-#     """
-#     Classifica a intenção do usuário globalmente.
-#     Sempre retorna exatamente 1 valor.
-#     """
-#     prompt = f"""
-#     Classifique a intenção da seguinte mensagem em apenas UMA das opções:
-    
-#     - AUTH_FLOW (perguntas relacionadas à autenticação, cadastro, identidade, CPF, data de nascimento, login)
-#     - EXCHANGE_INTENT (câmbio, dólar, euro, moedas, cotação, forex)
-#     - CREDIT_INTENT (empréstimo, financiamento, limite, crédito)
-#     - CREDIT_INTERVIEW_INTENT (avaliação de perfil, entrevista, análise de crédito)
-#     - END_CONVERSATION (obrigado, valeu, tchau, encerra)
-#     - SMALL_TALK (cumprimentos, conversa fiada, assuntos gerais)
-
-#     Mensagem do usuário:
-#     {mensagem}
-
-#     Responda com apenas uma opção.
-#     """
-
-#     response = base_model.invoke(prompt)
-#     return response.content.strip()
-
-def global_intent_router(base_model: ChatOpenAI, mensagem: str) -> str:
+def global_intent_router(base_model: ChatOpenAI, user_input: str) -> str:
     """
     Classifica a intenção do usuário globalmente.
     Sempre retorna exatamente 1 valor.
     """
+
     prompt = f"""
     Classifique a intenção da seguinte mensagem em apenas UMA das opções:
     
-    - AUTH_FLOW (perguntas relacionadas à autenticação, cadastro, identidade, CPF, data de nascimento, login)
+    - SMALL_TALK (cumprimentos, conversa fiada, assuntos gerais, despedida e.g "obrigado", "valeu", "tchau", "encerrar")
+    - CREDIT_INTENT (limite, solicitar novo limite de crédito, score de crédito)
+    - CREDIT_INTERVIEW_INTENT (realiza entrevista com o cliente coletando dados para saber se é possível aumentar seu limite de crédito)
     - EXCHANGE_INTENT (câmbio, dólar, euro, moedas, cotação)
-    - CREDIT_INTENT (limite, crédito, score de crédito)
-    - END_CONVERSATION (obrigado, valeu, tchau, encerra)
-    - SMALL_TALK (cumprimentos, conversa fiada, assuntos gerais)
 
     Mensagem do usuário:
-    {mensagem}
+    {user_input}
 
     Responda com apenas uma opção.
     """
