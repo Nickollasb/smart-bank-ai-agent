@@ -1,7 +1,6 @@
-# agents/exchange_agent.py
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
-from agents.exchange.tools import consultar_cotacao
+from agents.exchange.tools import check_currency_exchange_rate
 
 def create(base_model: ChatOpenAI):
     system_prompt = (
@@ -10,6 +9,6 @@ def create(base_model: ChatOpenAI):
     )
     return create_agent(
         model=base_model,
-        tools=[consultar_cotacao],
+        tools=[check_currency_exchange_rate],
         system_prompt=system_prompt
     )

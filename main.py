@@ -8,7 +8,11 @@ from agents.exchange.agent import create as create_exchange_agent
 from agents.credit.agent import create as create_credit_agent
 from agents.general.agent import general_intent_agent
 
+from agents.credit.tools import _check_score_for_new_limit
+
 load_dotenv()
+
+print(f" ---> {_check_score_for_new_limit("05613638110", 5000)}")
 
 # os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2")
 # os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")

@@ -1,15 +1,16 @@
 import requests
 import csv
-
-#TODO: Add error handling and logging
+from datetime import datetime
+import pytz
+import json
 
 def http_request(method: str, url: str) -> dict:
-    """Make an HTTP request to a given URL and return the response on JSON."""
+    """Faz uma chamada HTTP para uma URL fornecida e retorna a resposta em JSON."""
     try:
         response = requests.request(method, url)
         return response.json()
     except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
+        print(f"Ocorreu um erro ao realizar a chamada de API: {e}")
         return None
     
     
@@ -20,13 +21,12 @@ def read_data(file_path: str) -> list[dict]:
             reader = csv.DictReader(csvfile)
             return [row for row in reader]
     except FileNotFoundError:
-        print("⚠️ Erro: Arquivo clientes.csv não encontrado.")
-        return []
+        print(f"Erro: Arquivo não encontrado: {file_path}")
+        return False
     
 def update_data(file_path: str, column_name: str, row_id: str, value: str) -> bool:
     """
     Atualiza apenas a linha do CSV onde column_name == row_id.
-    Exemplo: update_data("clientes.csv", "cpf", "05613638110", "850")
     """
     try:
         # 1. Ler todo o arquivo
@@ -56,5 +56,23 @@ def update_data(file_path: str, column_name: str, row_id: str, value: str) -> bo
         return True
 
     except FileNotFoundError:
-        print(f"❌ Erro: Arquivo não encontrado: {file_path}")
+        print(f"Erro: Arquivo não encontrado: {file_path}")
         return False
+    
+def insert_data(file_path: str, new_data: dict) -> list[dict]:
+    """Adiciona um novo dado em arquivos .csv"""
+    try:
+        with open(file=file_path, mode="a", newline='', encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(dict_to_list(new_data))
+    except FileNotFoundError:
+        print(f"Erro: Arquivo não encontrado: {file_path}")
+        return False
+
+def get_current_datetime() -> str:
+    """Retorna a data e hora atual no formato ISO 8601 com fuso horário de São Paulo (GMT -3)."""
+    tz = pytz.timezone('America/Sao_Paulo')
+    return datetime.now(tz).isoformat()
+
+def dict_to_list(dict_data):
+    return [str(value) for value in dict_data.values()]
