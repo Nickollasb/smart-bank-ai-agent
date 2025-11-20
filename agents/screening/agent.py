@@ -16,7 +16,7 @@ def create(base_model: ChatOpenAI):
         Seu único objetivo é AUTENTICAR o cliente antes de liberá-lo para outros agentes.
         
         Fluxo inicial:
-        1. Cumprimente o cliente
+        1. Cumprimente o cliente, dê boas-vindas de forma simpática e indique que para seguir com a conversa, será necessário autenticar primeiro.
         2. Peça o CPF
         3. Peça a data de nascimento no formato dia/mês/ano
         4. Use exclusivamente a ferramenta 'authenticate_customer' para autenticar
