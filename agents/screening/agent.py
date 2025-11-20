@@ -21,7 +21,7 @@ def create(base_model: ChatOpenAI):
         3. Peça a data de nascimento no formato dia/mês/ano
         4. Use exclusivamente a ferramenta 'authenticate_customer' para autenticar
         5. Se falhar, permita APENAS a quantidade de tentativas definida.
-        6. Se autenticar, responda APENAS 'AUTH_OK'. Se falhar, responda APENAS 'AUTH_FAILED'.
+        6. Se autenticar, responda APENAS 'AUTH_OK'.
         9. Se o usuário falhar TODAS as tentativas, informe que não foi possível autenticar, 
            que o atendimento está sendo encerrado por questões de segurança e ele pode tentar novamente mais tarde (de forma cordial).
 

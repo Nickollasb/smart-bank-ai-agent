@@ -2,12 +2,11 @@ from dotenv import load_dotenv
 import os
 from langchain_openai import ChatOpenAI
 
-from router.intent_router import global_intent_router
+from router.intent_router import create as create_router_agent
 from agents.screening.agent import create as create_screening_agent
 from agents.exchange.agent import create as create_exchange_agent
 from agents.credit.agent import create as create_credit_agent
 from agents.credit_interview.agent import create as create_credit_interview_agent
-from agents.general.agent import general_intent_agent
 
 from providers import get_current_datetime
 
@@ -38,15 +37,15 @@ base_model = ChatOpenAI(
 # agent_credit = create_credit_agent(base_model)
 
 agents = {
+    "router": create_router_agent(base_model),
     "screening": create_screening_agent(base_model),
     "credit": create_credit_agent(base_model),
-    "credit_interview": create_credit_interview_agent(base_model),
+    "interview": create_credit_interview_agent(base_model),
     "exchange": create_exchange_agent(base_model)
 }
 
 is_auth = False
-auth_attempts = 0
-MAX_AUTH_ATTEMPTS = 1
+MAX_AUTH_ATTEMPTS = 2
 active_agent = "screening"
 conversation_history = []
 
@@ -78,7 +77,7 @@ initial_context = f""""
     - Quantidade de tentativas de autenticação permitidas {MAX_AUTH_ATTEMPTS}
 """
 
-conversation_history = [{"role": "system", "content": "Iniciando atendimento bancário."}]
+conversation_history = [{"role": "system", "content": f"Iniciando atendimento bancário. É permitido apenar um total de {MAX_AUTH_ATTEMPTS} tentativas de autenticação"}]
 
 # def extract_intent_from_response(response_text: str) -> str:
 #     intents = {
@@ -98,79 +97,72 @@ conversation_history = [{"role": "system", "content": "Iniciando atendimento ban
 
 def handle_intent(intent: str):
     global active_agent
+    
+    match intent:            
+        case "CREDIT_INTENT": 
+            active_agent = "credit"
+        case "CREDIT_INTERVIEW_INTENT": 
+            active_agent = "interview"
+        case "EXCHANGE_INTENT": 
+            active_agent = "exchange"
+        case "SMALL_TALK": 
+            active_agent = "small_talk"
+        case _:
+            active_agent = "router"
+    
+    return True
 
-    if intent == "INTENT_CREDIT":
-        active_agent = "credit"
-        return True
 
-    if intent == "START_INTERVIEW":
-        active_agent = "interview"
-        return True
-
-    if intent == "FINISH":
-        active_agent = "screening"
-        return True
-
-    return False
 
 if __name__ == "__main__":
-    print(">>>> Iniciando agente Banco Ágil <<<<\n\n\n")
+    print(">>>> Iniciando agente Banco Ágil <<<<\n\n")
+
     while True:
         user_input = input(" --> Eu: ").strip()
-
         conversation_history.append({"role": "user", "content": user_input})
 
-        # conversation_history.append({"role": "system", "content": "O CPF do cliente é 05613638111"})
-
+        #TODO: colocar um limite te tempo de 10 min pra tentar novament após todas as tentativas falharem
         if not is_auth:
             result = agents["screening"].invoke({"messages": conversation_history})
             message = result["messages"][-1].content
             conversation_history.append({"role": "assistant", "content": message})
-            print(f" ----> {active_agent.upper()}: {message}")
+            print(f" ----> [{is_auth}]{active_agent.upper()}: {message}")
             
             if message == "AUTH_OK":
                 is_auth = True
-                auth_attempts = 0
-                message = "Obrigado pela validação, já encontrei os seus dados. Como posso te ajudar?"
+                print(f">>> {is_auth} <<<")
+                conversation_history.append({"role": "system", "content": f"Cliente autenticado: {is_auth}. Direcionando agente para o router"})
+                message = f" ----> [{is_auth}]{active_agent.upper()}: Obrigado pela validação, já encontrei os seus dados. Como posso te ajudar?"
                 conversation_history.append({"role": "assistant", "content": message})
                 print(message)
                 continue
-            
-            elif message == "AUTH_FAILED":
-                # auth_attempts += 1
-                result = agents["screening"].invoke({"messages": conversation_history})
-                print(f" !----> {active_agent.upper()}: {message}")
-
-                # if auth_attempts >= MAX_AUTH_ATTEMPTS:
-                #     message = f"Resultado da tentativa {auth_attempts}: {message}."
-                #     conversation_history.append({"role": "system", "content": message})
-                #     result = agents["screening"].invoke({"messages": conversation_history})
-                #     print(f" ?----> {active_agent.upper()}: {message}")
-                #     break
-                # else:
-                #     # TODO ajustar mensagem após 3 falhas consecutivas
-                #     print(f"\n⚠️ Tentativa {auth_attempts}/{MAX_AUTH_ATTEMPTS} — tente novamente.\n")
-                #     continue
             else:
                 continue
 
 
+        ### SE ESTIVER AUTENTICADO
+        active_agent = "router"
+        intent_response = agents[active_agent].invoke({"messages": conversation_history})
+        message = intent_response["messages"][-1].content
+        # conversation_history.append({"role": "assistant", "content": message})
 
-
-
-
-
-
-        result = agents[active_agent].invoke({"messages": conversation_history})
-        resposta = result["messages"][-1].content
-        print(f" ----> {active_agent.upper()}: {resposta}")
-
-        conversation_history.append({"role": "assistant", "content": resposta})
-
-        # --- ver se agente pediu troca ---
-        if handle_intent(resposta.strip()):
+        if handle_intent(message.strip()):
             print(f"🔁 Mudando para agente: {active_agent}")
-            conversation_history = []  # reset ou não, dependendo da estratégia
+
+            # if active_agent != "small_talk":
+            result = agents[active_agent].invoke({"messages": conversation_history})
+            message = result["messages"][-1].content
+            conversation_history.append({"role": "assistant", "content": message})
+            print(f" ----> [{is_auth}]{active_agent.upper()}: {message}")
+            continue
+        
+            # result = general_intent_agent(base_model, user_input)
+            # message = result
+            # conversation_history.append({"role": "assistant", "content": message})
+            # print(f" ----> [{is_auth}]{active_agent.upper()}: {message}")
+
+
+        
 
 # if __name__ == "__main__":
 #     print("🤖 Chatbot Financeiro Multi-Agente (POC)")

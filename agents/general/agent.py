@@ -1,17 +1,20 @@
+from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
-    
-def general_intent_agent(base_model: ChatOpenAI, mensagem: str) -> str:
+
+def create(base_model: ChatOpenAI):
     """
     Responde o usuário de forma humana, direcionando a conversa para o contexto bancário.
     """
-    prompt = f"""
-    Responda a seguinte mensagem de forma humana, limitando o cliente ao contexto de serviços da instituição.
+     
+    system_prompt = (
+        f"""
+        Responda a mensagem do usuário de forma humana, limitando o cliente ao contexto de serviços da instituição.
 
-    Mensagem do usuário:
-    {mensagem}
-    
-    Responda apenas a mensagem que o cliente deve receber.
-    """
-
-    response = base_model.invoke(prompt)
-    return response.content.strip()
+        Responda APENAS a mensagem que o cliente deve receber.
+        """
+    )
+    return create_agent(
+        model=base_model,
+        tools=[],
+        system_prompt=system_prompt
+    )

@@ -37,7 +37,13 @@ def check_score_for_new_limit(document: str, new_limit: float) -> str:
 def _get_credit_score(document: str) -> dict:
     for row in read_data("data/clientes.csv"):
         if row.get('cpf') == document:
-            return f"{row['score']}"
+            score = row['score']
+            
+            if not score:
+                score = 0
+                update_data("data/clientes.csv", "cpf", document, "score", score)
+
+            return f"{score}"
 
     return "CUSTOMER_SCORE_NOT_FOUND"
 
@@ -45,9 +51,15 @@ def _get_credit_score(document: str) -> dict:
 def _get_current_credit_limit(document: str) -> dict:
     for row in read_data("data/clientes.csv"):
         if row.get('cpf') == document:
-            return f"{row['limite_credito']}" or "0"
+            limit = row['limite_credito']
 
-    return "CUSTOMER_SCORE_NOT_FOUND"
+            if not limit:
+                limit = 0
+                update_data("data/clientes.csv", "cpf", document, "limite_credito", limit)
+
+            return f"{limit}"
+
+    return "CUSTOMER_LIMIT_NOT_FOUND"
 
 
 def _check_score_for_new_limit(document: str, new_limit: float) -> str:
