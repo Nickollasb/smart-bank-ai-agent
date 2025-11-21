@@ -1,15 +1,18 @@
-{
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Python Debugger: Current File",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "main.py",
-            "console": "integratedTerminal"
-        }
-    ]
-}
+    {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "Python: Streamlit",
+                "type": "debugpy",
+                "request": "launch",
+                "module": "streamlit",
+                "args": [
+                    "run",
+                    "chat.py", // Or provide the specific path to your Streamlit app file, e.g., "app.py"
+                    "--server.port",
+                    "8501" // Optional: specify a port
+                ],
+                "justMyCode": true // Set to false if you need to step into Streamlit library code
+            }
+        ]
+    }

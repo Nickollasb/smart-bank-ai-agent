@@ -1,28 +1,32 @@
 import streamlit as st
+from main import AgentController
 
-st.title("Assistente Banco Ágil")
+title = "Atendimento - Banco Ágil"
+description = "Seja bem-vindo(a) ao atendimento do Banco Ágil!"
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+st.set_page_config(page_title=title, page_icon="🤖")
 
+st.title(title)
+st.text(description)
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+if "controller" not in st.session_state:
+    st.session_state.controller = AgentController()
 
+if "conversation_history" not in st.session_state:
+    st.session_state.conversation_history = []
 
-prompt = st.chat_input("What is up?")
-if prompt:
-    prompt = f"Eu: {prompt}"
+for m in st.session_state.conversation_history:
+    with st.chat_message(m["role"]):
+        st.write(m["content"])
 
-    with st.chat_message("user", avatar="🧑"):
-        st.markdown(prompt)
+user_input = st.chat_input("Digite sua mensagem...")
 
-    st.session_state.messages.append({"role": "user", "content": prompt})
+if user_input:
+    with st.chat_message("user"):
+        st.write(user_input)
 
-    response = f"Assistente: {prompt}"
+    st.session_state.conversation_history = st.session_state.controller.send(user_input, st.session_state.conversation_history)
+    agent_response = st.session_state.conversation_history[-1]["content"]
 
-    with st.chat_message("assistant", avatar="🤖"):
-        st.markdown(response)
-
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    with st.chat_message("assistant"):
+        st.write(agent_response)
