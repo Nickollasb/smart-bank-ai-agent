@@ -4,6 +4,7 @@ from datetime import datetime
 import pytz
 from langchain.agents import create_agent
 from langchain.agents.middleware import PIIMiddleware, SummarizationMiddleware
+from langchain.agents.middleware.pii import PIIMatch
 import re
 from langchain_openai import ChatOpenAI
 
@@ -110,14 +111,47 @@ def convert_date_to_raw_format(date: str):
     data.reverse()
     return '-'.join(data)
 
-def create_agent_provider(base_model: ChatOpenAI, system_prompt: str, tools = []):
+
+def document_detector(text: str) -> list[PIIMatch]:
+    regex = re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")
+
+    matches = []
+    for match in regex.finditer(text):
+        matches.append(
+            PIIMatch(
+                value=match.group(),
+                start=match.start(),
+                end=match.end(),
+                type="document"
+            )
+        )
+    return matches
+
+def date_detector(text: str) -> list[PIIMatch]:
+    regex = re.compile(r"\b\d{2}\/?\d{2}\/?\d{4}\b")
+
+    matches = []
+    for match in regex.finditer(text):
+        matches.append(
+            PIIMatch(
+                value=match.group(),
+                start=match.start(),
+                end=match.end(),
+                type="date"
+            )
+        )
+    return matches
+
+def create_agent_provider(base_model: ChatOpenAI, system_prompt: str, tools = []):    
     return create_agent(
         model=base_model,
         system_prompt=system_prompt,
         tools=tools,
         middleware=[
-            PIIMiddleware(detector="", strategy="redact", apply_to_input=True),
-            PIIMiddleware("birth_date", strategy="redact", apply_to_input=True),
-            SummarizationMiddleware(base_model, max_tokens_before_summary=500, messages_to_keep=5)
+            PIIMiddleware(pii_type="document", detector=document_detector, strategy="redact", apply_to_input=True, apply_to_output=False, apply_to_tool_results=False),
+            # PIIMiddleware(pii_type="birth_date", detector=date_detector, strategy="redact", apply_to_input=True),
+            # SummarizationMiddleware(base_model, max_tokens_before_summary=1000, messages_to_keep=5)
         ]
     )
+
+    

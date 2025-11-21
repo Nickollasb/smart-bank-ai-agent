@@ -21,9 +21,9 @@ warnings.filterwarnings(
 
 load_dotenv()
 
-# os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2")
-# os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
-# os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
+os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2")
+os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
+os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
 
 class Customer:
     def __init__(self):
@@ -51,7 +51,7 @@ class AgentController:
             model="gpt-4o-mini",
             temperature=0.2,
             api_key=os.getenv("OPENAI_API_KEY"),
-            # verbose=True
+            verbose=True
         )
 
         self.agents = {
@@ -113,6 +113,11 @@ class AgentController:
             case _:
                 self.active_agent = "router"
         return True
+    
+
+    def debug_in(text):
+        print("\n>>> TEXTO ENVIADO PARA A LLM:", text)
+        return text
 
 
     def send(self, user_input: str, conversation_history: list[dict]) -> list[dict]:
@@ -149,3 +154,4 @@ class AgentController:
             self.conversation_history.append({"role": "assistant", "content": self.message})
             return self.conversation_history
 
+   
