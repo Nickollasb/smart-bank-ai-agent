@@ -1,6 +1,5 @@
-# agents/exchange_agent.py
-from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
+from providers import create_agent_provider
 from agents.credit_interview.tools import calculate_new_score
 
 def create(base_model: ChatOpenAI):
@@ -28,8 +27,4 @@ def create(base_model: ChatOpenAI):
         """
     )
     
-    return create_agent(
-        model=base_model,
-        tools=[calculate_new_score],
-        system_prompt=system_prompt
-    )
+    return create_agent_provider(base_model, system_prompt, tools=[calculate_new_score])

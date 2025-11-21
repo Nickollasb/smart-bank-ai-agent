@@ -1,6 +1,5 @@
-# agents/exchange_agent.py
-from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
+from providers import create_agent_provider
 from agents.credit.tools import get_credit_score, get_current_credit_limit, check_score_for_new_limit
 
 def create(base_model: ChatOpenAI):
@@ -29,8 +28,5 @@ def create(base_model: ChatOpenAI):
         • Nunca ignore o resultado das tools.
         """
     )
-    return create_agent(
-        model=base_model,
-        tools=[get_credit_score, get_current_credit_limit, check_score_for_new_limit],
-        system_prompt=system_prompt
-    )
+    
+    return create_agent_provider(base_model, system_prompt, tools=[get_credit_score, get_current_credit_limit, check_score_for_new_limit])

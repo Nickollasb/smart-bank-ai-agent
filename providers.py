@@ -2,7 +2,10 @@ import requests
 import csv
 from datetime import datetime
 import pytz
-import json
+from langchain.agents import create_agent
+from langchain.agents.middleware import PIIMiddleware, SummarizationMiddleware
+import re
+from langchain_openai import ChatOpenAI
 
 def http_request(method: str, url: str) -> dict:
     """Faz uma chamada HTTP para uma URL fornecida e retorna a resposta em JSON."""
@@ -106,3 +109,15 @@ def convert_date_to_raw_format(date: str):
     data = date.split('/')
     data.reverse()
     return '-'.join(data)
+
+def create_agent_provider(base_model: ChatOpenAI, system_prompt: str, tools = []):
+    return create_agent(
+        model=base_model,
+        system_prompt=system_prompt,
+        tools=tools,
+        middleware=[
+            PIIMiddleware(detector="", strategy="redact", apply_to_input=True),
+            PIIMiddleware("birth_date", strategy="redact", apply_to_input=True),
+            SummarizationMiddleware(base_model, max_tokens_before_summary=500, messages_to_keep=5)
+        ]
+    )

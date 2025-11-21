@@ -1,5 +1,5 @@
-from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
+from providers import create_agent_provider
 
 def create(base_model: ChatOpenAI):
     """
@@ -20,8 +20,4 @@ def create(base_model: ChatOpenAI):
         - O output deve ser APENAS uma das intenções listadas acima.
         """
     )
-    return create_agent(
-        model=base_model,
-        tools=[],
-        system_prompt=system_prompt
-    )
+    return create_agent_provider(base_model, system_prompt)

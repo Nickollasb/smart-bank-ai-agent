@@ -33,16 +33,6 @@ class Customer:
         self.score = None
         self.credit_limit = None
 
-    # @property
-    # def document(self):
-    #     return self.document
-    
-    # @document.setter
-    # def set_customer_document(self, value: str):
-    #     self.document = value
-
-    #TODO: Terminar de definir os getters e setters
-
 class SessionState:
     def __init__(self):
         self.session_id = uuid.uuid8()
@@ -50,9 +40,6 @@ class SessionState:
         self.customer = Customer()
         self.active_agent = "screening"
         self.new_try_timeout = None
-
-    #TODO: Terminar de definir os getters e setters
-
 
 
 class AgentController:
@@ -64,7 +51,7 @@ class AgentController:
             model="gpt-4o-mini",
             temperature=0.2,
             api_key=os.getenv("OPENAI_API_KEY"),
-            verbose=True
+            # verbose=True
         )
 
         self.agents = {
@@ -140,7 +127,11 @@ class AgentController:
             
             if self.message == "AUTH_OK":
                 self.is_auth = True
-                self.conversation_history.append({"role": "system", "content": f"Cliente autenticado: {self.is_auth}. Direcionando agente para o router"})
+                self.conversation_history.append({"role": "system", "content": f"""
+                    AUTENTICADO={self.state.is_auth}
+                    CPF={self.state.customer.document}
+                    DATA DE NASCIMENTO={self.state.customer.birth_date}
+                    Direcionando agente para o router"""})
                 self.message = "Obrigado pela validação, já encontrei os seus dados. Como posso te ajudar?"
                 self.conversation_history.append({"role": "assistant", "content": self.message})
             

@@ -1,6 +1,6 @@
-from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
 from agents.screening.tools import authenticate_customer
+from providers import create_agent_provider
 
 def create(base_model: ChatOpenAI):
     """
@@ -42,8 +42,4 @@ def create(base_model: ChatOpenAI):
         """
     )
 
-    return create_agent(
-        model=base_model,
-        tools=[authenticate_customer],
-        system_prompt=system_prompt
-    )
+    return create_agent_provider(base_model, system_prompt, tools=[authenticate_customer])
