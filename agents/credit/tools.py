@@ -56,6 +56,7 @@ def _get_current_credit_limit(document: str) -> dict:
             if not limit:
                 limit = 0
                 update_data("data/clientes.csv", "cpf", document, "limite_credito", limit)
+                
 
             return f"{limit}"
 

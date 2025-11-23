@@ -1,5 +1,4 @@
-import os
-import uuid
+import os, uuid, re
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
@@ -13,30 +12,26 @@ from agents.general.agent import create as create_small_talk_agent
 
 from providers import get_current_datetime
 
-import warnings
-warnings.filterwarnings(
-    action="ignore",
-    message=".*Pydantic V1 functionality isn't compatible with Python 3.14.*"
-)
-
 load_dotenv()
 
 os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2")
 os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
 os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
 
+
 class Customer:
     def __init__(self):
-        self.document = None
-        self.birth_date = None
+        self.document = "05613638110"# None
+        self.birth_date = "26/01/1996" # None
         self.customer_name = None
         self.score = None
         self.credit_limit = None
 
+
 class SessionState:
     def __init__(self):
         self.session_id = uuid.uuid8()
-        self.is_auth = False
+        self.is_auth = True # False
         self.customer = Customer()
         self.active_agent = "screening"
         self.new_try_timeout = None
@@ -44,12 +39,9 @@ class SessionState:
 
 class AgentController:
     def __init__(self):
-
-        self.active_agent = "screening"
-        
         self.base_model = ChatOpenAI(
             model="gpt-4o-mini",
-            temperature=0.2,
+            temperature=0.1,
             api_key=os.getenv("OPENAI_API_KEY"),
             verbose=True
         )
@@ -65,12 +57,10 @@ class AgentController:
 
         self.state = SessionState()
 
-        self.is_auth = False
         self.MAX_AUTH_ATTEMPTS = 2
-        self.active_agent = "screening"
         self.conversation_history = []
 
-        self.initial_context = f""""
+        self.initial_context = f"""
             Contexto (C):
             - Você é um agente bancário do 'Banco Ágil'.
 
@@ -98,60 +88,83 @@ class AgentController:
             - Quantidade de tentativas de autenticação permitidas {self.MAX_AUTH_ATTEMPTS}
         """
 
-        self.conversation_history = [{"role": "system", "content": f"Iniciando atendimento bancário. É permitido apenar um total de {self.MAX_AUTH_ATTEMPTS} tentativas de autenticação"}]
+        self.conversation_history = [
+            {"role": "system", "content": f"Iniciando atendimento bancário. É permitido apenar um total de {self.MAX_AUTH_ATTEMPTS} tentativas de autenticação"}]
 
-    def handle_intent(self, intent: str):        
-        match intent:            
-            case "CREDIT_INTENT": 
+    def handle_intent(self, intent: str):
+        match intent:
+            case "CREDIT_INTENT":
                 self.active_agent = "credit"
-            case "CREDIT_INTERVIEW_INTENT": 
+            case "CREDIT_INTERVIEW_INTENT":
                 self.active_agent = "interview"
-            case "EXCHANGE_INTENT": 
+            case "EXCHANGE_INTENT":
                 self.active_agent = "exchange"
-            case "SMALL_TALK": 
+            case "SMALL_TALK":
                 self.active_agent = "small_talk"
             case _:
                 self.active_agent = "router"
         return True
-    
-
-    def debug_in(text):
-        print("\n>>> TEXTO ENVIADO PARA A LLM:", text)
-        return text
-
 
     def send(self, user_input: str, conversation_history: list[dict]) -> list[dict]:
-        self.conversation_history.append({"role": "user", "content": user_input})
+        regex_document = r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b"
+        regex_birth_date = r"\b\d{2}\/?\d{2}\/?\d{4}\b"
 
-        #TODO: colocar um limite te tempo de 10 min pra tentar novament após todas as tentativas falharem
+        # captura CPF
+        if not self.state.customer.document:
+            match = re.search(regex_document, user_input)
+            if match:
+                self.state.customer.document = match.group()
+
+        # captura data de nascimento
+        if not self.state.customer.birth_date:
+            match = re.search(regex_birth_date, user_input)
+            if match:
+                self.state.customer.birth_date = match.group()
+
+        self.conversation_history.append(
+            {"role": "user", "content": user_input})
+
+        # TODO: colocar um limite te tempo de 10 min pra tentar novament após todas as tentativas falharem
         # SE NÃO ESTIVER AUTENTICADO
-        if not self.is_auth:
-            self.result = self.agents["screening"].invoke({"messages": self.conversation_history})
+        if not self.state.is_auth:
+            self.result = self.agents["screening"].invoke(
+                {"messages": self.conversation_history})
             self.message = self.result["messages"][-1].content
-            self.conversation_history.append({"role": "assistant", "content": self.message})
-            
+            self.conversation_history.append(
+                {"role": "assistant", "content": self.message})
+
             if self.message == "AUTH_OK":
-                self.is_auth = True
+                self.state.is_auth = True
                 self.conversation_history.append({"role": "system", "content": f"""
-                    AUTENTICADO={self.state.is_auth}
-                    CPF={self.state.customer.document}
-                    DATA DE NASCIMENTO={self.state.customer.birth_date}
+                    AUTENTICADO={self.state.is_auth}\n\n
                     Direcionando agente para o router"""})
                 self.message = "Obrigado pela validação, já encontrei os seus dados. Como posso te ajudar?"
-                self.conversation_history.append({"role": "assistant", "content": self.message})
-            
+                self.conversation_history.append(
+                    {"role": "assistant", "content": self.message})
+
             return self.conversation_history
-              
 
         # SE ESTIVER AUTENTICADO
         self.active_agent = "router"
-        self.result = self.agents[self.active_agent].invoke({"messages": conversation_history})
+        self.result = self.agents[self.active_agent].invoke(
+            {"messages": conversation_history})
         self.message = self.result["messages"][-1].content
 
-        if self.handle_intent(self.message.strip()):
-            self.result = self.agents[self.active_agent].invoke({"messages": conversation_history})
+        if self.handle_intent(re.sub('[!@#$]', '', self.message.strip())):
+            self.conversation_history.append(
+                {"role": "system", "content": f"""
+                    CPF: {self.state.customer.document}
+                    DATA_NASCIMENTO: {self.state.customer.birth_date}
+                """})
+            print(f"LAST AGENT -> {self.active_agent}")
+            self.result = self.agents[self.active_agent].invoke(
+                {"messages": conversation_history})
             self.message = self.result["messages"][-1].content
-            self.conversation_history.append({"role": "assistant", "content": self.message})
+            self.conversation_history.append(
+                {"role": "assistant", "content": f"[{self.active_agent.upper()}]: {self.message}"})
+            self.conversation_history.append(
+                {"role": "system", "content": f"""
+                    Dados de contexto:
+                    ULTIMO_AGENTE: {self.active_agent}
+                """})
             return self.conversation_history
-
-   

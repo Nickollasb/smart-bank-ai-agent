@@ -112,35 +112,35 @@ def convert_date_to_raw_format(date: str):
     return '-'.join(data)
 
 
-def document_detector(text: str) -> list[PIIMatch]:
-    regex = re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")
+# def document_detector(text: str) -> list[PIIMatch]:
+#     regex = re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")
 
-    matches = []
-    for match in regex.finditer(text):
-        matches.append(
-            PIIMatch(
-                value=match.group(),
-                start=match.start(),
-                end=match.end(),
-                type="document"
-            )
-        )
-    return matches
+#     matches = []
+#     for match in regex.finditer(text):
+#         matches.append(
+#             PIIMatch(
+#                 value=match.group(),
+#                 start=match.start(),
+#                 end=match.end(),
+#                 type="document"
+#             )
+#         )
+#     return matches
 
-def date_detector(text: str) -> list[PIIMatch]:
-    regex = re.compile(r"\b\d{2}\/?\d{2}\/?\d{4}\b")
+# def date_detector(text: str) -> list[PIIMatch]:
+#     regex = re.compile(r"\b\d{2}\/?\d{2}\/?\d{4}\b")
 
-    matches = []
-    for match in regex.finditer(text):
-        matches.append(
-            PIIMatch(
-                value=match.group(),
-                start=match.start(),
-                end=match.end(),
-                type="date"
-            )
-        )
-    return matches
+#     matches = []
+#     for match in regex.finditer(text):
+#         matches.append(
+#             PIIMatch(
+#                 value=match.group(),
+#                 start=match.start(),
+#                 end=match.end(),
+#                 type="date"
+#             )
+#         )
+#     return matches
 
 def create_agent_provider(base_model: ChatOpenAI, system_prompt: str, tools = []):    
     return create_agent(
@@ -148,7 +148,7 @@ def create_agent_provider(base_model: ChatOpenAI, system_prompt: str, tools = []
         system_prompt=system_prompt,
         tools=tools,
         middleware=[
-            PIIMiddleware(pii_type="document", detector=document_detector, strategy="redact", apply_to_input=True, apply_to_output=False, apply_to_tool_results=False),
+            # PIIMiddleware(pii_type="document", detector=document_detector, strategy="redact", apply_to_input=True, apply_to_output=False, apply_to_tool_results=False),
             # PIIMiddleware(pii_type="birth_date", detector=date_detector, strategy="redact", apply_to_input=True),
             # SummarizationMiddleware(base_model, max_tokens_before_summary=1000, messages_to_keep=5)
         ]
