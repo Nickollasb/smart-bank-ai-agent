@@ -16,8 +16,9 @@ if "conversation_history" not in st.session_state:
     st.session_state.conversation_history = []
 
 for m in st.session_state.conversation_history:
-    with st.chat_message(m["role"]):
-        st.write(m["content"])
+    if m["role"] != 'system':
+        with st.chat_message(m["role"]):
+            st.write(m["content"])
 
 user_input = st.chat_input("Digite sua mensagem...")
 

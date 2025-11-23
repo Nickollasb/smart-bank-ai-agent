@@ -57,13 +57,32 @@ RESPOSTA AO PEDIDO DE VALOR (Agente de Crédito)
 - IGNORAR as regras padrão.
 - SEMPRE retornar: CREDIT_INTENT.
 
-====================================================================
 REGRA ESPECIAL 2 — PRIORIDADE MÁXIMA  
-ENTRADA NA ENTREVISTA (após reprovação)
-====================================================================
-- Se o Agente de Crédito ofereceu iniciar a entrevista após reprovação e o usuário respondeu afirmativamente, classifique como CREDIT_INTERVIEW_INTENT.
-- IGNORAR regras padrão.
+ENTRADA NA ENTREVISTA DE CRÉDITO (após reprovação):
+
+- Esta regra deve ser aplicada sempre que, no histórico recente, o Agente de Crédito tiver dito QUALQUER frase que ofereça ou sugira iniciar a entrevista de crédito.
+- Considere como gatilhos válidos todas as variações abaixo (e similares):
+
+   "posso encaminhá-lo para o Agente de Entrevista de Crédito"
+   "deseja seguir para entrevista"
+   "gostaria de seguir com isso"
+   "quer fazer a entrevista"
+   "quer iniciar a entrevista"
+   "podemos iniciar a entrevista"
+   "deseja iniciar a entrevista"
+   "posso passar você para a entrevista"
+
+- Se QUALQUER uma dessas frases (ou variação similar) estiver entre as últimas mensagens do agente,
+  ENTÃO qualquer resposta afirmativa do usuário deve ser classificada como CREDIT_INTERVIEW_INTENT.
+
+- Respostas afirmativas incluem:
+   "sim", "quero", "quero sim", "sim quero",
+   "ok", "pode ser", "vamos", "vamos lá", "claro",
+   "tudo bem", "certo", "beleza", "fechou"
+
+- Ignorar regras padrão nesse contexto.
 - SEMPRE retornar: CREDIT_INTERVIEW_INTENT.
+
 
 ====================================================================
 REGRA ESPECIAL 3 — PRIORIDADE MÁXIMA  
