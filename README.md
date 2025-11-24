@@ -68,5 +68,5 @@ A escolha técnica definida baseada dentro da stack técnica sugerida para o pro
 - ```$ source venv/bin/activate```
 2. Instale todas as dependências a partir da raiz do projeto:
 - ```$ pip install -r requirements.txt```
-3. Após instaladas todas as dependências, inicie o projeto a partir do comando abaixo:
+3. Após instaladas todas as dependências, insira a chave ```OPENAI_API_KEY=``` no .env e inicie o projeto a partir do comando abaixo:
 - ```$ streamlit run chat.py```
