@@ -1,175 +1,3 @@
-# import os, uuid, re
-
-# from dotenv import load_dotenv
-# from langchain_openai import ChatOpenAI
-
-# from agents.router.agent import create as create_router_agent
-# from agents.screening.agent import create as create_screening_agent
-# from agents.exchange.agent import create as create_exchange_agent
-# from agents.credit.agent import create as create_credit_agent
-# from agents.credit_interview.agent import create as create_credit_interview_agent
-# from agents.general.agent import create as create_small_talk_agent
-
-# from providers import get_current_datetime
-
-# load_dotenv()
-
-# os.environ["LANGCHAIN_TRACING_V2"] = os.getenv("LANGCHAIN_TRACING_V2")
-# os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
-# os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
-
-
-# class Customer:
-#     def __init__(self):
-#         self.document = "05613638110"# None
-#         self.birth_date = "26/01/1996" # None
-#         self.customer_name = None
-#         self.score = None
-#         self.credit_limit = None
-
-
-# class SessionState:
-#     def __init__(self):
-#         self.session_id = uuid.uuid8()
-#         self.is_auth = True # False
-#         self.customer = Customer()
-#         self.active_agent = "screening"
-#         self.new_try_timeout = None
-
-
-# class AgentController:
-#     def __init__(self):
-#         self.base_model = ChatOpenAI(
-#             model="gpt-4o-mini",
-#             temperature=0.1,
-#             api_key=os.getenv("OPENAI_API_KEY"),
-#             verbose=True
-#         )
-
-#         self.agents = {
-#             "router": create_router_agent(self.base_model),
-#             "screening": create_screening_agent(self.base_model),
-#             "credit": create_credit_agent(self.base_model),
-#             "interview": create_credit_interview_agent(self.base_model),
-#             "exchange": create_exchange_agent(self.base_model),
-#             "small_talk": create_small_talk_agent(self.base_model)
-#         }
-
-#         self.state = SessionState()
-
-#         self.MAX_AUTH_ATTEMPTS = 2
-#         self.conversation_history = []
-
-#         self.initial_context = f"""
-#             Contexto (C):
-#             - Você é um agente bancário do 'Banco Ágil'.
-
-#             Objetivo (O):
-#             - Seu objetivo é atender os clientes do 'Banco Ágil' a utilizarem os serviços bancários, 
-#             direcionando o cliente  para conversar com o agente correto, de acordo com a solicitação.
-            
-#             Estilo (S):
-#             - Atendimento bancário.
-            
-#             Tom(T)
-#             - Cordial, com linguagem simples/objetiva sempre mantendo o tom profissional.
-            
-#             Audiência(A)
-#             - Clientes do 'Banco Ágil'.
-            
-#             Formato de resposta (R)
-#             - Responda sempre o cliente de acordo com o contexto da conversa e/ou solicitação.
-
-#             Informações adicionais:
-#             - Os redirecionamentos entre os agentes devem ser realizados sempre de forma implícita, ou seja, o cliente não pode perceber
-#             que está sendo direcionado para um agente diferente. A conversa deve fluir naturalmente como se fosse com um humano.
-#             - Nenhum agente pode atuar fora do seu escopo definido.
-#             - Você deve saudar o cliente sempre com um 'Bom dia/Boa tarde/Boa noite'. Horário atual para referência: '{get_current_datetime}'
-#             - Quantidade de tentativas de autenticação permitidas {self.MAX_AUTH_ATTEMPTS}
-#         """
-
-#         self.conversation_history = [
-#             {"role": "system", "content": f"Iniciando atendimento bancário. É permitido apenar um total de {self.MAX_AUTH_ATTEMPTS} tentativas de autenticação"}]
-
-#     def handle_intent(self, intent: str):
-#         match intent:
-#             case "CREDIT_INTENT":
-#                 self.active_agent = "credit"
-#             case "CREDIT_INTERVIEW_INTENT":
-#                 self.active_agent = "interview"
-#             case "EXCHANGE_INTENT":
-#                 self.active_agent = "exchange"
-#             case "SMALL_TALK":
-#                 self.active_agent = "small_talk"
-#             case _:
-#                 self.active_agent = "router"
-#         return True
-
-#     def send(self, user_input: str, conversation_history: list[dict]) -> list[dict]:
-#         regex_document = r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b"
-#         regex_birth_date = r"\b\d{2}\/?\d{2}\/?\d{4}\b"
-
-#         # captura CPF
-#         if not self.state.customer.document:
-#             match = re.search(regex_document, user_input)
-#             if match:
-#                 self.state.customer.document = match.group()
-
-#         # captura data de nascimento
-#         if not self.state.customer.birth_date:
-#             match = re.search(regex_birth_date, user_input)
-#             if match:
-#                 self.state.customer.birth_date = match.group()
-
-#         self.conversation_history.append(
-#             {"role": "user", "content": user_input})
-
-#         # TODO: colocar um limite te tempo de 10 min pra tentar novament após todas as tentativas falharem
-#         # SE NÃO ESTIVER AUTENTICADO
-#         if not self.state.is_auth:
-#             self.result = self.agents["screening"].invoke(
-#                 {"messages": self.conversation_history})
-#             self.message = self.result["messages"][-1].content
-#             self.conversation_history.append(
-#                 {"role": "assistant", "content": self.message})
-
-#             if self.message == "AUTH_OK":
-#                 self.state.is_auth = True
-#                 self.conversation_history.append({"role": "system", "content": f"""
-#                     AUTENTICADO={self.state.is_auth}\n\n
-#                     Direcionando agente para o router"""})
-#                 self.message = "Obrigado pela validação, já encontrei os seus dados. Como posso te ajudar?"
-#                 self.conversation_history.append(
-#                     {"role": "assistant", "content": self.message})
-
-#             return self.conversation_history
-
-#         # SE ESTIVER AUTENTICADO
-#         self.active_agent = "router"
-#         self.result = self.agents[self.active_agent].invoke(
-#             {"messages": conversation_history})
-#         self.message = self.result["messages"][-1].content
-
-#         if self.handle_intent(re.sub('[!@#$]', '', self.message.strip())):
-#             self.conversation_history.append(
-#                 {"role": "system", "content": f"""
-#                     CPF: {self.state.customer.document}
-#                     DATA_NASCIMENTO: {self.state.customer.birth_date}
-#                 """})
-#             print(f"LAST AGENT -> {self.active_agent}")
-#             self.result = self.agents[self.active_agent].invoke(
-#                 {"messages": conversation_history})
-#             self.message = self.result["messages"][-1].content
-#             self.conversation_history.append(
-#                 {"role": "assistant", "content": f"[{self.active_agent.upper()}]: {self.message}"})
-#             self.conversation_history.append(
-#                 {"role": "system", "content": f"""
-#                     Dados de contexto:
-#                     ULTIMO_AGENTE: {self.active_agent}
-#                 """})
-#             return self.conversation_history
-
-
 import os, uuid, re
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
@@ -200,7 +28,7 @@ class SessionState:
         self.is_auth = False
         self.customer = Customer()
         self.active_agent = "screening"
-        self.flow = None      # (credit_request, interview, idle, etc.)
+        self.flow = None 
         self.new_try_timeout = None
 
 class AgentController:
@@ -223,20 +51,35 @@ class AgentController:
 
         self.state = SessionState()
         self.MAX_AUTH_ATTEMPTS = 2
-        self.conversation_history = []
-
-        self.initial_context = f"""
-            Você é um agente do Banco Ágil. 
-            Siga as regras de atendimento bancário, tom cordial e linguagem objetiva.
-            Redirecione entre agentes de forma implícita, sem o cliente perceber.
-            Horário atual: '{get_current_datetime}'.
-        """
-
-        self.conversation_history.append({
+        self.conversation_history = [{
             "role": "system",
-            "content": f"""Iniciando atnedimento do Banco Ágil
-                        MAX_TENTATIVAS_AUTENTICACAO: {self.MAX_AUTH_ATTEMPTS}."""
-        })
+            "content": f"""
+Você é um agente virtual do Banco Ágil.
+
+INSTRUÇÕES GERAIS:
+- Atue sempre como um atendente bancário profissional.
+- Mantenha linguagem cordial, clara e objetiva.
+- Responda de forma natural e humana, evitando robidez excessiva.
+
+BOAS-VINDAS:
+- Sempre cumprimente o cliente com “Bom dia”, “Boa tarde” ou “Boa noite”, conforme o horário.
+- Apresente-se dando boas-vindas ao atendimento do Banco Ágil
+
+REGRAS DE INTERAÇÃO:
+- O atendimento deve fluir naturalmente, sem o cliente perceber qualquer troca de agente.
+- Cada resposta deve considerar o contexto recente da conversa.
+- Nunca saia do escopo bancário ou forneça informações fora do domínio do banco.
+- Não use emojis
+
+DADOS INTERNOS:
+- Horário atual: '{get_current_datetime()}'.
+- Tentativas máximas de autenticação permitidas: {self.MAX_AUTH_ATTEMPTS}.
+- Use estas informações apenas como contexto para definir comportamento, jamais as exponha diretamente ao cliente (exceto o cumprimento baseado no horário).
+
+OBJETIVO:
+- Identificar a intenção do cliente e direcionar internamente para o agente especializado (triagem, crédito, entrevista de crédito, câmbio ou conversação geral), mantendo a transição imperceptível.
+        """
+        }]
 
     def handle_intent(self, intent: str):
         match intent:
@@ -257,7 +100,6 @@ class AgentController:
                 self.state.flow = None
 
             case "END_CREDIT_INTERVIEW":
-                # volta para agente de crédito
                 self.state.active_agent = "credit"
                 self.state.flow = "credit_flow"
 
@@ -279,7 +121,7 @@ class AgentController:
         # ----------------------------------------------------------------------
         # 0) Sincroniza histórico interno e injeta contexto técnico
         # ----------------------------------------------------------------------
-        self.conversation_history = conversation_history
+        # self.conversation_history = conversation_history
 
         self.conversation_history.append({
             "role": "system",
@@ -335,6 +177,8 @@ class AgentController:
                     "content": "Obrigado pela validação, já encontrei os seus dados. Como posso te ajudar?"
                 })
 
+            print(f"[{self.state.active_agent}]")
+
             return self.conversation_history
 
         # ----------------------------------------------------------------------
@@ -375,7 +219,7 @@ class AgentController:
                     "role": "assistant",
                     "content": credit_msg
                 })
-
+                print(f"[{self.state.active_agent}]")
                 return self.conversation_history
 
             # Caso intermediário: ainda coletando dados / confirmando
@@ -383,6 +227,8 @@ class AgentController:
                 "role": "assistant",
                 "content": raw_msg
             })
+
+            print(f"[{self.state.active_agent}]")
             return self.conversation_history
 
         # ----------------------------------------------------------------------
@@ -402,9 +248,7 @@ class AgentController:
         # ----------------------------------------------------------------------
         # 6) Chama o agente decidido pelo router
         # ----------------------------------------------------------------------
-        agent_key = self.state.active_agent
-
-        result_agent = self.agents[agent_key].invoke({"messages": self.conversation_history})
+        result_agent = self.agents[self.state.active_agent].invoke({"messages": self.conversation_history})
         agent_msg = result_agent["messages"][-1].content
 
         self.conversation_history.append({
@@ -412,7 +256,7 @@ class AgentController:
             "content": agent_msg
         })
 
-        print(f"[{agent_key}]")
+        print(f"[{self.state.active_agent}]")
         return self.conversation_history
 
     # def send(self, user_input: str, conversation_history: list[dict]) -> list[dict]:
