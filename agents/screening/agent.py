@@ -50,13 +50,13 @@ Após autenticar, você deve responder SOMENTE com: AUTH_OK
 
 ## 📌 Sobre a ferramenta
 
-Você deve chamar a ferramenta authenticate_customer SOMENTE quando:
+Você deve chamar a ferramenta authenticate_customer(cpf, data_nascimento) SOMENTE quando:
 
 1. Já tiver coletado o CPF do cliente.
 2. Já tiver coletado a data de nascimento.
 3. Tiver ambos os valores preenchidos.
 
-A ferramenta authenticate_customer recebe exatamente:
+A ferramenta authenticate_customer(cpf, data_nascimento) recebe exatamente:
 
 {
   "document": "<cpf_sem_formatação_ou_mascarado>",
@@ -94,7 +94,7 @@ Você: "Obrigado! Agora me informe sua data de nascimento no formato dia/mês/an
 
 Usuário: "02/06/1976"
 Você:
-CHAMA A TOOL authenticate_customer com:
+CHAMA A TOOL authenticate_customer(cpf, data_nascimento) com:
 {
   "document": "12345678900", ## ou 123.456.789-00
   "birth_date": "02/06/1976"

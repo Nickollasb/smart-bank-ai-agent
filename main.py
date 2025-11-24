@@ -187,8 +187,8 @@ load_dotenv()
 
 class Customer:
     def __init__(self):
-        self.document = "05613638110"
-        self.birth_date = "26/01/1996"
+        self.document = None
+        self.birth_date = None
         self.customer_name = None
         self.score = None
         self.credit_limit = None
@@ -197,7 +197,7 @@ class Customer:
 class SessionState:
     def __init__(self):
         self.session_id = uuid.uuid4()
-        self.is_auth = True
+        self.is_auth = False
         self.customer = Customer()
         self.active_agent = "screening"
         self.flow = None      # (credit_request, interview, idle, etc.)
