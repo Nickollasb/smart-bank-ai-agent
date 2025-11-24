@@ -349,8 +349,8 @@ class AgentController:
             # if "entrevista de crédito" in msg.lower() and "deseja" in msg.lower():
             #     print("[FLOW] Agora aguardando confirmação do usuário")
             #     self.state.flow = "AWAITING_INTERVIEW_CONFIRM"
-            if self.state.active_agent != 'router':
-                return self.conversation_history
+            # if self.state.active_agent != 'router':
+            return self.conversation_history
 
         # ====================================================================
         # 3) SENÃO → ROUTER NORMAL
