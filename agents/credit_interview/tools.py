@@ -6,27 +6,29 @@ from providers import find_data, update_data
 #####################################################################################################################
 
 @tool("calculate_new_score")
-def calculate_new_score(document: str) -> dict:
+def calculate_new_score(document: str, monthly_revenue: str, employment_type: str,
+                         expenses: str, dependents: str, debts: str) -> dict:
     """Calcula o novo score de crédito de um cliente pelo CPF (document)."""
-    return _calculate_new_score(document)
+    return _calculate_new_score(document, monthly_revenue, employment_type, expenses, dependents, debts)
 
 
 #####################################################################################################################
 ############# FUNCTIONS #############################################################################################
 #####################################################################################################################
 
-def _calculate_new_score(document: str) -> dict:
-    renda_mensal = 5000
-    tipo_emprego = "formal"
-    despesas = 12000
-    num_dependentes = 1
-    tem_dividas = "não"
+def _calculate_new_score(document: str, monthly_revenue: str, employment_type: str,
+                         expenses: str, dependents: str, debts: str) -> dict:
+    renda_mensal = int(monthly_revenue)
+    tipo_emprego = employment_type
+    despesas = int(expenses)
+    num_dependentes = dependents
+    tem_dividas = debts
     
     # customer = find_data("data/clientes.csv", "cpf", document)[0]
         
     peso_renda = 30
     peso_emprego = { "formal": 300, "autônomo": 200, "desempregado": 0 }
-    peso_dependentes = { 0: 100, 1: 80, 2: 60, "3+": 30 }
+    peso_dependentes = { '0': 100, '1': 80, '2': 60, "3+": 30 }
     peso_dividas = { "sim": -100, "não": 100 }
     score = (
         (renda_mensal / (despesas + 1)) * 
