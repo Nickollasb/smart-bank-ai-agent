@@ -51,6 +51,7 @@ Apesar disso, o projeto me motivou ainda mais a direcionar os meus estudos para 
 - Desenvolvimento de testes unitários das ferramentas (tools) para garantir a consistência do código implementado durante a evolução do projeto.
 - Tratativas mais robustas para as exceções do projeto
 - Definir a tonalidade de conversa, de acordo com a preferência da instituição e adaptar o agente para isso. Para este desafio, foi escolhida uma linguagem mais objetiva e profissional.
+- Pequenas melhorias de UX para identificar melhor o contexto e tornar o agente mais assertivo após a autenticação (entender a primeira entrada como parte do contexto)
 - Testes e alguns pequenos ajustes para refinamento final
 
 ### Escolhas técnicas e justificativas.

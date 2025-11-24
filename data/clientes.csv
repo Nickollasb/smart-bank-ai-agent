@@ -1,4 +1,4 @@
 cpf,data_nascimento,nome,score,limite_credito
 12345678900,1990-05-12,João Silva,100,800
 98765432100,1988-09-03,Maria Souza,200,0
-45678912300,2000-01-22,Carlos Lima,,
+45678912300,2000-01-22,Carlos Lima,854,3000.0

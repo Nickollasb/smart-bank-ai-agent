@@ -23,8 +23,6 @@ def _calculate_new_score(document: str, monthly_revenue: str, employment_type: s
     despesas = int(expenses)
     num_dependentes = dependents
     tem_dividas = debts
-    
-    # customer = find_data("data/clientes.csv", "cpf", document)[0]
         
     peso_renda = 30
     peso_emprego = { "formal": 300, "autônomo": 200, "desempregado": 0 }
