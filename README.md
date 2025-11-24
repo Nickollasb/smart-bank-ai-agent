@@ -65,6 +65,7 @@ A escolha técnica definida baseada dentro da stack técnica sugerida para o pro
 **AGENTE DE IA:**
 - **Langchain** (stack confiável para projetos em produção)
 - **OpenAI API** (familiaridade com a API e os modelos de IA)
+- **Modelo de IA** (gpt-4o-mini - mais rápido nas respostas)
 
 ### Tutorial de execução e testes.
 1. Crie um ambiente virtual para o projeto:

@@ -35,7 +35,7 @@ class AgentController:
     def __init__(self):
         self.base_model = ChatOpenAI(
             model="gpt-4o-mini",
-            temperature=0.1,
+            temperature=0.3,
             api_key=os.getenv("OPENAI_API_KEY"),
             verbose=True
         )
