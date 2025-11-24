@@ -143,7 +143,6 @@ OBJETIVO:
         if not self.state.is_auth:
             result = self.agents["screening"].invoke({"messages": self.conversation_history})
             msg = result["messages"][-1].content
-            self.conversation_history.append({"role": "assistant", "content": msg})
 
             if msg.strip() == "AUTH_OK":
                 self.state.is_auth = True
@@ -155,6 +154,8 @@ OBJETIVO:
                     "role": "assistant",
                     "content": "Obrigado pela validação, já encontrei os seus dados. Como posso te ajudar?"
                 })
+            else:
+                self.conversation_history.append({"role": "assistant", "content": msg})
 
             return self.conversation_history
 
