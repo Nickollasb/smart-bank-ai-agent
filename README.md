@@ -40,7 +40,9 @@ O projeto foi bem desafiador, visto que atuei sempre com ferramentas gráficas p
 
 Para superar os desafios, utilizei muito a documentação das tecnologias para me apoiar. Mesmo não sabendo fazer algo, hoje temos uma vasta quantidade de informação na internet. Basta pesquisar da forma correta.
 
-Apesar dos desafios, o projeto me motivou ainda mais a direcionar os meus estudos para o Langchain e utilizá-lo como stack principal, pois desta forma é possível criar projetos robustos, com mais controle e segurança.
+Um desafio que me chamou atenção foi garantir que os roteamentos estão sendo feitos corretamente entre os agentes. Dentro do prompt, busquei ser o mais claro possível para a LLM saber quando indicar uma troca mais sensível e o que ela precisaria retornar em cada caso.
+
+Apesar disso, o projeto me motivou ainda mais a direcionar os meus estudos para o Langchain e utilizá-lo como stack principal, pois desta forma é possível criar projetos robustos, com mais controle e segurança.
 
 **Pontos de melhoria para a próxima versão do projeto, considerando este desafio técnico como uma POC:**
 - Melhorar a observabilidade do projeto (Langsmith)
