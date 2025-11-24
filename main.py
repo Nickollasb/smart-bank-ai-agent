@@ -302,24 +302,24 @@ class AgentController:
         # ====================================================================
         # 1) FLUXO ESPECIAL: aguardando confirmação de entrevista
         # ====================================================================
-        if self.state.flow == "AWAITING_INTERVIEW_CONFIRM":
-            # Se o usuário respondeu algo afirmativo -> ir direto ao router
-            self.state.flow = None
-            self.state.active_agent = "router"
+        # if self.state.flow == "AWAITING_INTERVIEW_CONFIRM":
+        #     # Se o usuário respondeu algo afirmativo -> ir direto ao router
+        #     self.state.flow = None
+        #     self.state.active_agent = "router"
 
-            print("[FLOW] Confirmação de entrevista detectada → router")
-            result = self.agents["router"].invoke({"messages": self.conversation_history})
-            intent = result["messages"][-1].content.strip()
+        #     print("[FLOW] Confirmação de entrevista detectada → router")
+        #     result = self.agents["router"].invoke({"messages": self.conversation_history})
+        #     intent = result["messages"][-1].content.strip()
 
-            self.handle_intent(intent)
+        #     self.handle_intent(intent)
 
-            response = self.agents[self.state.active_agent].invoke(
-                {"messages": self.conversation_history}
-            )
-            msg = response["messages"][-1].content
-            self.conversation_history.append({"role": "assistant", "content": msg})
+        #     response = self.agents[self.state.active_agent].invoke(
+        #         {"messages": self.conversation_history}
+        #     )
+        #     msg = response["messages"][-1].content
+        #     self.conversation_history.append({"role": "assistant", "content": msg})
 
-            return self.conversation_history
+        #     return self.conversation_history
 
         # ====================================================================
         # 2) FLUXOS QUE NÃO DEVEM CHAMAR O ROUTER
@@ -339,16 +339,25 @@ class AgentController:
                     {"messages": self.conversation_history}
                 )
                 msg = result["messages"][-1].content
-                self.state.active_agent = "router"
+                # self.state.active_agent = "router"
             
             self.conversation_history.append({"role": "assistant", "content": msg})
 
             # print(f"[{self.state.active_agent}]")
 
             # Detecta automaticamente quando o Agente de Crédito ofereceu entrevista
-            # if "entrevista de crédito" in msg.lower() and "deseja" in msg.lower():
-            #     print("[FLOW] Agora aguardando confirmação do usuário")
-            #     self.state.flow = "AWAITING_INTERVIEW_CONFIRM"
+            if "novo score" in msg.lower():
+                print('END_CREDIT_INTERVIEW')
+                self.conversation_history.append({"role": "system", "content": 'END_CREDIT_INTERVIEW'})
+                self.state.active_agent = 'credit'
+
+                result = self.agents[self.state.active_agent].invoke(
+                    {"messages": self.conversation_history}
+                )
+                msg = result["messages"][-1].content
+
+                self.conversation_history.append({"role": "assistant", "content": msg})
+
             # if self.state.active_agent != 'router':
             return self.conversation_history
 

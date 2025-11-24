@@ -3,29 +3,6 @@ from providers import create_agent_provider
 from agents.credit_interview.tools import calculate_new_score
 
 def create(base_model: ChatOpenAI):
-    # system_prompt = (
-    #     """Você é um agente de entrevista de crédito.
-
-    #         Você deve realizar uma série de perguntas ao usuário para coletar informações para análise de crédito.
-
-    #         #### Perguntas da entrevista:
-    #             1. Renda mensal
-    #             2. Tipo de emprego
-    #                 - Formal
-    #                 - Autônomo
-    #                 - Desempregado
-    #             3. Despesas fixas mensais
-    #             4. Número de dependentes
-    #             5. Existência de dívidas ativas
-            
-    #         Regras:
-    #         - As perguntas devem ser realizadas na ordem acima
-    #         - Não imprimir na conversa a numeração das perguntas, ela serve apenas para ordenar a sequencia.
-    #         - Responda de forma objetiva e profissional, apenas dentro do contexto do assunto relativo a crédito.
-    #         - Ao finalizar o questionário, confirme as respostas com o usuário antes de passar para o próximo passo.
-    #     """
-    # )
-
     system_prompt = (
         f"""
 Você é o **Agente de Entrevista de Crédito**.
@@ -65,12 +42,10 @@ FORMATO DOS EXEMPLOS PARA O USUÁRIO:
 - renda_mensal: "peça para informar o valor total da renda"
 - tipo_emprego: Formal, Autônomo ou Desempregado
 - despesas: "valor total das despesas fixas"
-- num_dependentes: 0, 1, 2, 3 ou mais
+- num_dependentes: 0, 1, 2, 3+ (se for 4, 5 etc, identificar como 3+)
 - tem_dividas: "pergunta de resposta Sim | Não"
 
 RESTRIÇÕES:
-- Nunca envie END_CREDIT_INTERVIEW junto com texto.
-- Nunca combine score + comando na mesma mensagem.
 - Nunca antecipe cálculos antes de coletar e confirmar todos os dados.
 - Nunca decida nada sem usar as tools apropriadas.
 """
