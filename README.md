@@ -50,6 +50,8 @@ Apesar disso, o projeto me motivou ainda mais a direcionar os meus estudos para 
 - Uso de um "resumidor" de contexto para reduzir o uso de tokens (SummarizationMiddleware)
 - Desenvolvimento de testes unitários das ferramentas (tools) para garantir a consistência do código implementado durante a evolução do projeto.
 - Tratativas mais robustas para as exceções do projeto
+- Definir a tonalidade de conversa, de acordo com a preferência da instituição e adaptar o agente para isso. Para este desafio, foi escolhida uma linguagem mais objetiva e profissional.
+- Testes e alguns pequenos ajustes para refinamento final
 
 ### Escolhas técnicas e justificativas.
 A escolha técnica definida baseada dentro da stack técnica sugerida para o projeto.
