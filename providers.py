@@ -1,11 +1,6 @@
-import requests
-import csv
+import requests, csv, pytz
 from datetime import datetime
-import pytz
 from langchain.agents import create_agent
-from langchain.agents.middleware import PIIMiddleware, SummarizationMiddleware
-from langchain.agents.middleware.pii import PIIMatch
-import re
 from langchain_openai import ChatOpenAI
 
 def http_request(method: str, url: str) -> dict:
@@ -58,7 +53,6 @@ def update_data(file_path: str, search_column: str, search_row_key: str, field_n
     Atualiza apenas a linha do CSV onde encontrar o respectivo search_column e search_row_key.
     """
     try:
-        # 1. Ler todo o arquivo
         rows = []
         updated = False
 
@@ -76,7 +70,6 @@ def update_data(file_path: str, search_column: str, search_row_key: str, field_n
             print(f"No lines found at '{file_path}' in column '{search_column}' with key '{search_row_key}'")
             return False
 
-        # 2. Reescrever o arquivo com a linha alterada
         with open(file_path, "w", encoding="utf-8", newline="") as outfile:
             writer = csv.DictWriter(outfile, fieldnames=fieldnames)
             writer.writeheader()
@@ -111,47 +104,11 @@ def convert_date_to_raw_format(date: str):
     data.reverse()
     return '-'.join(data)
 
-
-# def document_detector(text: str) -> list[PIIMatch]:
-#     regex = re.compile(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b")
-
-#     matches = []
-#     for match in regex.finditer(text):
-#         matches.append(
-#             PIIMatch(
-#                 value=match.group(),
-#                 start=match.start(),
-#                 end=match.end(),
-#                 type="document"
-#             )
-#         )
-#     return matches
-
-# def date_detector(text: str) -> list[PIIMatch]:
-#     regex = re.compile(r"\b\d{2}\/?\d{2}\/?\d{4}\b")
-
-#     matches = []
-#     for match in regex.finditer(text):
-#         matches.append(
-#             PIIMatch(
-#                 value=match.group(),
-#                 start=match.start(),
-#                 end=match.end(),
-#                 type="date"
-#             )
-#         )
-#     return matches
-
 def create_agent_provider(base_model: ChatOpenAI, system_prompt: str, tools = []):    
     return create_agent(
         model=base_model,
         system_prompt=system_prompt,
         tools=tools,
-        middleware=[
-            # PIIMiddleware(pii_type="document", detector=document_detector, strategy="redact", apply_to_input=True, apply_to_output=False, apply_to_tool_results=False),
-            # PIIMiddleware(pii_type="birth_date", detector=date_detector, strategy="redact", apply_to_input=True),
-            # SummarizationMiddleware(base_model, max_tokens_before_summary=1000, messages_to_keep=5)
-        ]
     )
 
     
