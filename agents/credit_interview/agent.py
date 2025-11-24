@@ -61,6 +61,13 @@ FORMATO DOS DADOS PARA A TOOL:
 - num_dependentes: '0' | '1' | '2' | '3+' (string)
 - tem_dividas: 'sim' | 'não' (string)
 
+FORMATO DOS EXEMPLOS PARA O USUÁRIO:
+- renda_mensal: "peça para informar o valor total da renda"
+- tipo_emprego: Formal, Autônomo ou Desempregado
+- despesas: "valor total das despesas fixas"
+- num_dependentes: 0, 1, 2, 3 ou mais
+- tem_dividas: "pergunta de resposta Sim | Não"
+
 RESTRIÇÕES:
 - Nunca envie END_CREDIT_INTERVIEW junto com texto.
 - Nunca combine score + comando na mesma mensagem.
