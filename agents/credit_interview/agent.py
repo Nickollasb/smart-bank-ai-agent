@@ -29,6 +29,7 @@ FINALIZAÇÃO:
 - Somente quando o usuário confirmar que todas as informações estão corretas:
     1. Use a tool 'calculate_new_score(cpf, renda_mensal, tipo_emprego, despesas, num_dependentes, tem_dividas)' para recalcular o novo score.
     2. Envie uma mensagem normal explicando qual é o novo score do cliente.
+    3. Envia o comando END_CREDIT_INTERVIEW na mensagem de score do cliente
 
 FORMATO DOS DADOS PARA A TOOL:
 - cpf: (string)
