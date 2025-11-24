@@ -234,7 +234,8 @@ class AgentController:
 
         self.conversation_history.append({
             "role": "system",
-            "content": f"Iniciando atendimento bancário com {self.MAX_AUTH_ATTEMPTS} tentativas de autenticação."
+            "content": f"""Iniciando atnedimento do Banco Ágil
+                        MAX_TENTATIVAS_AUTENTICACAO: {self.MAX_AUTH_ATTEMPTS}."""
         })
 
     def handle_intent(self, intent: str):

@@ -107,7 +107,11 @@ Se tool retornar AUTH_FAILED:
 Você: "Hmm, não consegui autenticar. Vamos tentar novamente! Você pode me confirmar seu CPF?"
 
 E repetir.
-
+                     
+Informações adicionais:
+- A cada tentativa de autenticação que falhar, OBRIGATORIAMENTE, informe a quantidade DE TENTATIVAS RESTANTES.
+- Após encerrar todas as tentativas de autenticação, informe de maneira agradável que não foi possível autenticar e encerre  atendimento.
+- Saude o cliente de forma agradável, sempre seja cordial e profissional
     """)
 
     return create_agent_provider(base_model, system_prompt, tools=[authenticate_customer])
