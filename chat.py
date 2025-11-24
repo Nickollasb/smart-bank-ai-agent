@@ -26,7 +26,7 @@ if user_input:
     with st.chat_message("user"):
         st.write(user_input)
 
-    st.session_state.conversation_history = st.session_state.controller.send(user_input, st.session_state.conversation_history)
+    st.session_state.conversation_history = st.session_state.controller.send(user_input)
     agent_response = st.session_state.conversation_history[-1]["content"]
 
     with st.chat_message("assistant"):

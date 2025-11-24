@@ -109,20 +109,16 @@ OBJETIVO:
 
         return True
 
-    def send(self, user_input: str, conversation_history: list[dict]) -> list[dict]:
+    def send(self, user_input: str) -> list[dict]:
         """
         Orquestra o fluxo entre router e agentes especializados.
         Regras gerais:
         - Se não autenticado → sempre vai para screening.
-        - Se active_agent == 'interview' → prioriza fluxo da entrevista.
+        - Se active_agent for 'interview' → prioriza fluxo da entrevista.
         - Caso contrário → router decide o próximo agente.
         """
 
-        # ----------------------------------------------------------------------
-        # 0) Sincroniza histórico interno e injeta contexto técnico
-        # ----------------------------------------------------------------------
-        # self.conversation_history = conversation_history
-
+        # Injeta dados de contexto na conversa para garantir consistência
         self.conversation_history.append({
             "role": "system",
             "content": (
@@ -131,22 +127,7 @@ OBJETIVO:
             )
         })
 
-        # ----------------------------------------------------------------------
-        # 1) Encerramento explícito pelo usuário
-        # ----------------------------------------------------------------------
-        END_KEYWORDS = ["sair", "encerrar", "finalizar", "tchau"]
-        if user_input.lower().strip() in END_KEYWORDS:
-            self.conversation_history.append({
-                "role": "assistant",
-                "content": "Certo, estarei aqui caso precise novamente. Até mais!"
-            })
-            self.state.active_agent = "small_talk"
-            self.state.flow = None
-            return self.conversation_history
-
-        # ----------------------------------------------------------------------
-        # 2) Captura automática de CPF / data de nascimento (se vier no input)
-        # ----------------------------------------------------------------------
+        # Captura e armazena dados da autenticação
         cpf_match = re.search(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b", user_input)
         if cpf_match:
             self.state.customer.document = cpf_match.group()
@@ -158,9 +139,7 @@ OBJETIVO:
         # Adiciona mensagem do usuário ao histórico
         self.conversation_history.append({"role": "user", "content": user_input})
 
-        # ----------------------------------------------------------------------
-        # 3) Fluxo de autenticação (se existir)
-        # ----------------------------------------------------------------------
+        # FLUXO NÃO AUTENTICADO
         if not self.state.is_auth:
             result = self.agents["screening"].invoke({"messages": self.conversation_history})
             msg = result["messages"][-1].content
@@ -177,22 +156,16 @@ OBJETIVO:
                     "content": "Obrigado pela validação, já encontrei os seus dados. Como posso te ajudar?"
                 })
 
-            print(f"[{self.state.active_agent}]")
-
             return self.conversation_history
 
-        # ----------------------------------------------------------------------
-        # 4) FLUXO ESPECIAL: ENTREVISTA DE CRÉDITO ATIVA
-        #    Enquanto o active_agent for 'interview', NÃO chamamos o router.
-        #    O agente de entrevista só libera o fluxo quando emite END_CREDIT_INTERVIEW.
-        # ----------------------------------------------------------------------
+        # FLUXO AUTENTICADO
+        # Tratativa de loop para o loop de perguntas da entrevista
         if self.state.active_agent == "interview":
             result = self.agents["interview"].invoke({"messages": self.conversation_history})
             raw_msg = result["messages"][-1].content
 
-            # Caso final da entrevista: texto + comando END_CREDIT_INTERVIEW
             if "END_CREDIT_INTERVIEW" in raw_msg:
-                # Parte visível para o usuário (score, fechamento etc.)
+                # Remove da mensagem o comando 'END_CREDIT_INTERVIEW' para a LLM
                 visible = raw_msg.replace("END_CREDIT_INTERVIEW", "").strip()
                 if visible:
                     self.conversation_history.append({
@@ -206,8 +179,8 @@ OBJETIVO:
                     "content": "END_CREDIT_INTERVIEW"
                 })
 
-                # Atualiza estado de fluxo: volta para agente de crédito
-                self.handle_intent("END_CREDIT_INTERVIEW")  # vai setar active_agent = 'credit'
+                # Atualiza estado de fluxo para agente de crédito
+                self.handle_intent("END_CREDIT_INTERVIEW")
 
                 # Chama o agente de crédito para usar o novo score e avaliar o limite
                 result_credit = self.agents[self.state.active_agent].invoke(
@@ -222,32 +195,26 @@ OBJETIVO:
                 print(f"[{self.state.active_agent}]")
                 return self.conversation_history
 
-            # Caso intermediário: ainda coletando dados / confirmando
             self.conversation_history.append({
                 "role": "assistant",
                 "content": raw_msg
             })
 
-            print(f"[{self.state.active_agent}]")
             return self.conversation_history
 
-        # ----------------------------------------------------------------------
-        # 5) FLUXO NORMAL: ROUTER DECIDE (CREDIT / INTERVIEW / EXCHANGE / SMALL_TALK)
-        # ----------------------------------------------------------------------
+        # Fluxo de roteamento padrão 
         self.state.active_agent = "router"
 
         router_result = self.agents["router"].invoke({"messages": self.conversation_history})
         raw_intent = router_result["messages"][-1].content.strip()
 
-        # Sanitiza: remove caracteres estranhos, deixa só A-Z e underscore
+        # Sanitiza: remove caracteres estranhos da intent, deixa só A-Z e underscore
         intent = re.sub(r"[^A-Z_]", "", raw_intent)
 
         # Ajusta estado interno de acordo com a intenção
         self.handle_intent(intent)
 
-        # ----------------------------------------------------------------------
-        # 6) Chama o agente decidido pelo router
-        # ----------------------------------------------------------------------
+        # Chama agente definido pela intent dclassificada pelo router
         result_agent = self.agents[self.state.active_agent].invoke({"messages": self.conversation_history})
         agent_msg = result_agent["messages"][-1].content
 
@@ -256,130 +223,4 @@ OBJETIVO:
             "content": agent_msg
         })
 
-        print(f"[{self.state.active_agent}]")
         return self.conversation_history
-
-    # def send(self, user_input: str, conversation_history: list[dict]) -> list[dict]:
-
-    #     # Injeção de contexto interno
-    #     conversation_history.append({
-    #         "role": "system",
-    #         "content": f"CPF: {self.state.customer.document}\nDATA_NASCIMENTO: {self.state.customer.birth_date}"
-    #     })
-    #     self.conversation_history = conversation_history
-
-    #     # Encerramento
-    #     # END_KEYWORDS = ["sair", "encerrar", "finalizar", "tchau"]
-    #     # if user_input.lower().strip() in END_KEYWORDS:
-    #     #     self.conversation_history.append({
-    #     #         "role": "assistant",
-    #     #         "content": "Certo, estarei aqui caso precise novamente. Até mais!"
-    #     #     })
-    #     #     self.state.active_agent = "small_talk"
-    #     #     self.state.flow = None
-    #     #     return self.conversation_history
-
-    #     # Captura automática de CPF e data
-    #     cpf_match = re.search(r"\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b", user_input)
-    #     if cpf_match:
-    #         self.state.customer.document = cpf_match.group()
-
-    #     birth_match = re.search(r"\b\d{2}\/?\d{2}\/?\d{4}\b", user_input)
-    #     if birth_match:
-    #         self.state.customer.birth_date = birth_match.group()
-
-    #     # Adiciona input do usuário
-    #     self.conversation_history.append({"role": "user", "content": user_input})
-
-    #     # ====================================================================
-    #     # 1) FLUXO ESPECIAL: aguardando confirmação de entrevista
-    #     # ====================================================================
-    #     # if self.state.flow == "AWAITING_INTERVIEW_CONFIRM":
-    #     #     # Se o usuário respondeu algo afirmativo -> ir direto ao router
-    #     #     self.state.flow = None
-    #     #     self.state.active_agent = "router"
-
-    #     #     print("[FLOW] Confirmação de entrevista detectada → router")
-    #     #     result = self.agents["router"].invoke({"messages": self.conversation_history})
-    #     #     intent = result["messages"][-1].content.strip()
-
-    #     #     self.handle_intent(intent)
-
-    #     #     response = self.agents[self.state.active_agent].invoke(
-    #     #         {"messages": self.conversation_history}
-    #     #     )
-    #     #     msg = response["messages"][-1].content
-    #     #     self.conversation_history.append({"role": "assistant", "content": msg})
-
-    #     #     return self.conversation_history
-
-    #     # ====================================================================
-    #     # 2) FLUXOS QUE NÃO DEVEM CHAMAR O ROUTER
-    #     # ====================================================================
-    #     if self.state.active_agent in ["credit", "interview"]:
-
-    #         result = self.agents[self.state.active_agent].invoke(
-    #             {"messages": self.conversation_history}
-    #         )
-    #         msg = result["messages"][-1].content
-
-    #         if msg == "START_CREDIT_INTERVIEW":
-    #             self.conversation_history.append({"role": "system", "content": msg})
-    #             self.state.active_agent = 'interview'
-
-    #             result = self.agents[self.state.active_agent].invoke(
-    #                 {"messages": self.conversation_history}
-    #             )
-    #             msg = result["messages"][-1].content
-    #             # self.state.active_agent = "router"
-            
-    #         self.conversation_history.append({"role": "assistant", "content": msg})
-
-    #         # print(f"[{self.state.active_agent}]")
-
-    #         # Detecta automaticamente quando o Agente de Crédito ofereceu entrevista
-    #         if "novo score" in msg.lower():
-    #             print('END_CREDIT_INTERVIEW')
-    #             self.conversation_history.append({"role": "system", "content": 'END_CREDIT_INTERVIEW'})
-    #             self.state.active_agent = 'credit'
-
-    #             result = self.agents[self.state.active_agent].invoke(
-    #                 {"messages": self.conversation_history}
-    #             )
-    #             msg = result["messages"][-1].content
-
-    #             self.conversation_history.append({"role": "assistant", "content": msg})
-
-    #         # if self.state.active_agent != 'router':
-    #         return self.conversation_history
-
-
-
-
-
-
-
-
-
-
-
-
-    #     # ====================================================================
-    #     # 3) SENÃO → ROUTER NORMAL
-    #     # ====================================================================
-    #     self.state.active_agent = "router"
-
-    #     # Envia contexto da conversa ao router
-    #     result = self.agents["router"].invoke({"messages": self.conversation_history})
-    #     intent = result["messages"][-1].content.strip()
-
-    #     # Identifica a intenção
-    #     self.handle_intent(intent)
-
-    #     # Direciona intenção ao agente correto
-    #     response = self.agents[self.state.active_agent].invoke({"messages": self.conversation_history})
-    #     msg = response["messages"][-1].content
-    #     self.conversation_history.append({"role": "assistant", "content": msg})
-
-    #     print(f"[{self.state.active_agent}]")
-    #     return self.conversation_history
